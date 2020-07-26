@@ -27,10 +27,7 @@ class I2C(Lockable):
     for both MicroPython and Linux.
     """
 
-    def __init__(self, scl, sda, frequency=400000):
-        self.init(scl, sda, frequency)
-
-    def init(self, scl, sda, frequency):
+    def __init__(self, bus, frequency=400000):
         """Initialization"""
         self.deinit()
         if detector.board.ftdi_ft232h:
@@ -59,19 +56,10 @@ class I2C(Lockable):
             from machine import I2C as _I2C
         from microcontroller.pin import i2cPorts
 
-        for portId, portScl, portSda in i2cPorts:
-            try:
-                if scl == portScl and sda == portSda:
-                    self._i2c = _I2C(portId, mode=_I2C.MASTER, baudrate=frequency)
-                    break
-            except RuntimeError:
-                pass
-        else:
-            raise ValueError(
-                "No Hardware I2C on (scl,sda)={}\nValid I2C ports: {}".format(
-                    (scl, sda), i2cPorts
-                )
-            )
+        # try:
+        self._i2c = _I2C(bus_num=bus, mode=_I2C.MASTER, baudrate=frequency)
+        # except RuntimeError:
+        #     raise IOError(f'Could not configure an IC2 bus on bus {bus}.')
         if threading is not None:
             self._lock = threading.RLock()
 
